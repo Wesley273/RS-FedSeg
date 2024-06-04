@@ -6,7 +6,7 @@ import numpy as np
 from torch.utils.data import Dataset
 
 
-class CamVidDataset(Dataset):
+class CamVid(Dataset):
     """CamVid数据集。进行图像读取，图像增强增强和图像预处理.
 
     Args:
@@ -66,7 +66,7 @@ class CamVidDataset(Dataset):
         return len(self.ids)
 
 
-class BHPOOLDataset(Dataset):
+class BH_POOL(Dataset):
     """BHPOOL数据集。进行图像读取，图像增强增强和图像预处理.
 
     Args:
@@ -124,7 +124,7 @@ class BHPOOLDataset(Dataset):
         return len(self.ids)
 
 
-class BHWATERTANKDataset(Dataset):
+class BH_WATERTANK(Dataset):
     """BHWATERTANK数据集。进行图像读取，图像增强增强和图像预处理.
 
     Args:

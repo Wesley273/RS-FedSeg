@@ -1,8 +1,10 @@
+# -*- coding: UTF-8 -*-
 import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import json
 import ssl
 
 import segmentation_models_pytorch as smp
@@ -11,7 +13,6 @@ from segmentation_models_pytorch import utils as smp_utils
 from torch.utils.data import DataLoader
 
 from config import Config
-from datasets import BHPOOLDataset, BHWATERTANKDataset, CamVidDataset
 from my_utils.data_augmentation import (augment_train, augment_validation,
                                         preprocessing)
 
@@ -28,7 +29,7 @@ if __name__ == '__main__':
 
     # 数据集所在的目录
     DATA_DIR = Config.data_dir
-    MyDataset = BHPOOLDataset
+    MyDataset = Config.dataset
 
     # 训练集
     x_train_dir = os.path.join(DATA_DIR, 'train')
@@ -38,10 +39,10 @@ if __name__ == '__main__':
     x_valid_dir = os.path.join(DATA_DIR, 'val')
     y_valid_dir = os.path.join(DATA_DIR, 'valannot')
 
-    ENCODER = 'se_resnext50_32x4d'
-    ENCODER_WEIGHTS = 'imagenet'
-    CLASSES = MyDataset.CLASSES
-    ACTIVATION = 'sigmoid'  # could be None for logits or 'softmax2d' for multiclass segmentation
+    ENCODER = Config.encoder
+    ENCODER_WEIGHTS = Config.encoder_weights
+    CLASSES = Config.classes
+    ACTIVATION = Config.activation  # could be None for logits or 'softmax2d' for multiclass segmentation
 
     # 用预训练编码器建立分割模型
 
@@ -74,14 +75,14 @@ if __name__ == '__main__':
     )
 
     # 需根据显卡的性能进行设置，batch_size为每次迭代中一次训练的图片数，num_workers为训练时的工作进程数，如果显卡不太行或者显存空间不够，将batch_size调低并将num_workers调为0
-    train_loader = DataLoader(train_dataset, batch_size=2, shuffle=True, num_workers=4)
-    valid_loader = DataLoader(valid_dataset, batch_size=1, shuffle=False, num_workers=4)
+    train_loader = DataLoader(train_dataset, batch_size=Config.batch_size, shuffle=True, num_workers=Config.num_workers)
+    valid_loader = DataLoader(valid_dataset, batch_size=Config.batch_size, shuffle=False, num_workers=Config.num_workers)
 
     loss = smp_utils.losses.DiceLoss()
     metrics = [smp_utils.metrics.IoU(threshold=0.5)]
 
     optimizer = torch.optim.Adam([
-        dict(params=model.parameters(), lr=0.0001),
+        dict(params=model.parameters(), lr=Config.lr),
     ])
 
     # 创建一个简单的循环，用于迭代数据样本
@@ -104,17 +105,23 @@ if __name__ == '__main__':
 
     # 进行40轮次迭代的模型训练
     max_score = 0
-
+    train_logs = {}
+    val_logs = {}
     for i in range(0, 40):
 
         print('\nEpoch: {}'.format(i))
-        train_logs = train_epoch.run(train_loader)
-        valid_logs = valid_epoch.run(valid_loader)
+        train_logs[i] = train_epoch.run(train_loader)
+        val_logs[i] = valid_epoch.run(valid_loader)
+
+        with open("result\\train_logs.json", "w") as file:
+            json.dump(train_logs, file)
+        with open("result\\val_logs.json", "w") as file:
+            json.dump(val_logs, file)
 
         # 每次迭代保存下训练最好的模型
-        if max_score < valid_logs['iou_score']:
-            max_score = valid_logs['iou_score']
-            torch.save(model, 'weights/best_model.pth')
+        if max_score < val_logs[i]['iou_score']:
+            max_score = val_logs[i]['iou_score']
+            torch.save(model, 'result/best_model.pth')
             print('Model saved!')
 
         if i == 25:

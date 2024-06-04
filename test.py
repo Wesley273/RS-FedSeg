@@ -12,7 +12,7 @@ import segmentation_models_pytorch as smp
 import torch
 
 from config import Config
-from datasets import BHPOOLDataset, BHWATERTANKDataset, CamVidDataset
+from datasets import BH_POOL, BH_WATERTANK, CamVid
 from my_utils.data_augmentation import (augment_train, augment_validation,
                                         preprocessing)
 
@@ -43,7 +43,7 @@ def visualize(**images):
 if __name__ == '__main__':
 
     DATA_DIR = Config.data_dir
-    MyDataset = BHPOOLDataset
+    MyDataset = BH_POOL
 
     # 测试集
     x_test_dir = os.path.join(DATA_DIR, 'val')
