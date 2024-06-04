@@ -4,4 +4,6 @@ class Config:
     device = 'cuda'
 
     # 数据保存位置
-    DATA_DIR = './data/CamVid/' 
+    data_name = 'BH_POOLS_SPLIT'
+    client = 1
+    data_dir = './data/{}/REGION_{}'.format(data_name, client)

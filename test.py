@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 import os
 import sys
 
@@ -5,26 +6,26 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import ssl
 
-ssl._create_default_https_context = ssl._create_unverified_context
-
 import matplotlib.pyplot as plt
 import numpy as np
 import segmentation_models_pytorch as smp
 import torch
-from segmentation_models_pytorch import utils as smp_utils
-from torch.utils.data import DataLoader
 
 from config import Config
-from datasets import (CamVidDataset, augment_train, augment_validation,
-                      preprocessing)
+from datasets import BHPOOLDataset, BHWATERTANKDataset, CamVidDataset
+from my_utils.data_augmentation import (augment_train, augment_validation,
+                                        preprocessing)
 
 if torch.cuda.is_available():
     DEVICE = torch.device(Config.device)
 else:
     DEVICE = torch.device('cpu')
 
+ssl._create_default_https_context = ssl._create_unverified_context
 
 # 图像分割结果的可视化展示
+
+
 def visualize(**images):
     """PLot images in one row."""
     n = len(images)
@@ -41,15 +42,16 @@ def visualize(**images):
 # ---------------------------------------------------------------
 if __name__ == '__main__':
 
-    DATA_DIR = Config.DATA_DIR
+    DATA_DIR = Config.data_dir
+    MyDataset = BHPOOLDataset
 
     # 测试集
-    x_test_dir = os.path.join(DATA_DIR, 'test')
-    y_test_dir = os.path.join(DATA_DIR, 'testannot')
+    x_test_dir = os.path.join(DATA_DIR, 'val')
+    y_test_dir = os.path.join(DATA_DIR, 'valannot')
 
     ENCODER = 'se_resnext50_32x4d'
     ENCODER_WEIGHTS = 'imagenet'
-    CLASSES = ['car']
+    CLASSES = MyDataset.CLASSES
     ACTIVATION = 'sigmoid'  # could be None for logits or 'softmax2d' for multiclass segmentation
 
     preprocessing_fn = smp.encoders.get_preprocessing_fn(ENCODER, ENCODER_WEIGHTS)
@@ -60,7 +62,7 @@ if __name__ == '__main__':
     best_model = torch.load('weights/best_model.pth')
 
     # 创建测试数据集
-    test_dataset = CamVidDataset(
+    test_dataset = MyDataset(
         x_test_dir,
         y_test_dir,
         augmentation=augment_validation(),
@@ -71,7 +73,7 @@ if __name__ == '__main__':
     # ---------------------------------------------------------------
     # $# 图像分割结果可视化展示
     # 对没有进行图像处理转化的测试集进行图像可视化展示
-    test_dataset_vis = CamVidDataset(
+    test_dataset_vis = MyDataset(
         x_test_dir, y_test_dir,
         classes=CLASSES,
     )
