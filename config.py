@@ -19,6 +19,7 @@ class Config:
     device = 'cuda'
     batch_size = 2
     lr = 0.0001
+    lr_low = 1e-5
     num_workers = 4
 
     # 数据集加载

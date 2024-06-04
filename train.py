@@ -107,23 +107,27 @@ if __name__ == '__main__':
     max_score = 0
     train_logs = {}
     val_logs = {}
+    result_path = os.path.join('result', Config.data_name)
+    if not os.path.exists(result_path):
+        os.makedirs(result_path)
     for i in range(0, 40):
-
         print('\nEpoch: {}'.format(i))
         train_logs[i] = train_epoch.run(train_loader)
         val_logs[i] = valid_epoch.run(valid_loader)
 
-        with open("result\\train_logs.json", "w") as file:
+        with open(os.path.join(result_path, 'train_logs.json'), "w") as file:
             json.dump(train_logs, file)
-        with open("result\\val_logs.json", "w") as file:
+        with open(os.path.join(result_path, 'val_logs.json'), "w") as file:
             json.dump(val_logs, file)
 
-        # 每次迭代保存下训练最好的模型
+        # 保存当前轮次模型
+        torch.save(model, os.path.join(result_path, 'latest_model.pth'))
+        # 保存最好的模型
         if max_score < val_logs[i]['iou_score']:
             max_score = val_logs[i]['iou_score']
-            torch.save(model, 'result/best_model.pth')
+            torch.save(model, os.path.join(result_path, 'best_model.pth'))
             print('Model saved!')
 
         if i == 25:
-            optimizer.param_groups[0]['lr'] = 1e-5
+            optimizer.param_groups[0]['lr'] = Config.lr_low
             print('Decrease decoder learning rate to 1e-5!')
