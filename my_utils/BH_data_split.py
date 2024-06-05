@@ -147,10 +147,27 @@ def get_train_val(split_folder, img_folder, mask_folder):
         shutil.move(os.path.join(img_folder, img_name), os.path.join(val_folder, img_name))
 
 
+def get_test(split_folder):
+    train_folder = os.path.join(split_folder, 'train')
+    trainannot_folder = os.path.join(split_folder, 'trainannot')
+    test_folder = os.path.join(split_folder, 'test')
+    testannot_folder = os.path.join(split_folder, 'testannot')
+    for path in [train_folder, trainannot_folder, test_folder, testannot_folder]:
+        if not os.path.exists(path):
+            os.makedirs(path)
+    mask_list = os.listdir(train_folder)
+    test_count = int(len(mask_list) * (1 / 9))
+    for i, img_name in tqdm(enumerate(mask_list)):
+        shutil.move(os.path.join(trainannot_folder, img_name), os.path.join(testannot_folder, img_name))
+        shutil.move(os.path.join(train_folder, img_name), os.path.join(test_folder, img_name))
+        if i >= test_count:
+            break
+
+
 if __name__ == "__main__":
     for i in [1, 2, 3, 4, 5, 6, 7, 8]:
-        raw_folder = os.path.join('data', 'BH_WATERTANKS', 'REGION_{}'.format(i))
-        split_folder = os.path.join('data', 'BH_WATERTANKS_SPLIT', 'REGION_{}'.format(i))
+        raw_folder = os.path.join('data', 'BH_POOL', 'REGION_{}'.format(i))
+        split_folder = os.path.join('data', 'BH_POOL', 'REGION_{}'.format(i))
         #  图像数据集文件夹
         img_folder = os.path.join(raw_folder, 'IMAGES')
         #  切割得到的图像数据集存放文件夹
@@ -165,6 +182,7 @@ if __name__ == "__main__":
         size_h = 480
         #  切割步长,重叠度为(size_w - step)/size_w
         step = 240
-        image_split(img_folder, out_img_folder, mask_folder, out_mask_folder, size_w, size_h, step)
-        delete_empty(out_img_folder, out_mask_folder)
-        get_train_val(split_folder, out_img_folder, out_mask_folder)
+        # image_split(img_folder, out_img_folder, mask_folder, out_mask_folder, size_w, size_h, step)
+        # delete_empty(out_img_folder, out_mask_folder)
+        # get_train_val(split_folder, out_img_folder, out_mask_folder)
+        get_test(split_folder)

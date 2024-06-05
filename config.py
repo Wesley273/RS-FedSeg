@@ -23,7 +23,7 @@ class Config:
     num_workers = 4
 
     # 数据集加载
-    data_name = 'BH_POOL'
+    data_name = 'BH_WATERTANK'
     dataset = dataset_dict[data_name]
     client = 1
     data_dir = get_data_dir(data_name, client)
