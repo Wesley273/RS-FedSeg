@@ -43,23 +43,23 @@ def visualize(**images):
 if __name__ == '__main__':
 
     DATA_DIR = Config.data_dir
-    MyDataset = BH_POOL
+    MyDataset = Config.dataset
 
     # 测试集
-    x_test_dir = os.path.join(DATA_DIR, 'val')
-    y_test_dir = os.path.join(DATA_DIR, 'valannot')
+    x_test_dir = os.path.join(DATA_DIR, 'test')
+    y_test_dir = os.path.join(DATA_DIR, 'testannot')
 
-    ENCODER = 'se_resnext50_32x4d'
-    ENCODER_WEIGHTS = 'imagenet'
-    CLASSES = MyDataset.CLASSES
-    ACTIVATION = 'sigmoid'  # could be None for logits or 'softmax2d' for multiclass segmentation
+    ENCODER = Config.encoder
+    ENCODER_WEIGHTS = Config.encoder_weights
+    CLASSES = Config.classes
+    ACTIVATION = Config.activation  # could be None for logits or 'softmax2d' for multiclass segmentation
 
     preprocessing_fn = smp.encoders.get_preprocessing_fn(ENCODER, ENCODER_WEIGHTS)
     # ---------------------------------------------------------------
     # $# 测试训练出来的最佳模型
 
     # 加载最佳模型
-    best_model = torch.load('weights/best_model.pth')
+    best_model = torch.load(os.path.join('result', Config.data_name, 'best_model.pth'))
 
     # 创建测试数据集
     test_dataset = MyDataset(
