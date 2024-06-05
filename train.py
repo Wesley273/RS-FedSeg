@@ -81,9 +81,7 @@ if __name__ == '__main__':
     loss = smp_utils.losses.DiceLoss()
     metrics = [smp_utils.metrics.IoU(threshold=0.5)]
 
-    optimizer = torch.optim.Adam([
-        dict(params=model.parameters(), lr=Config.lr),
-    ])
+    optimizer = torch.optim.Adam(params=model.parameters(), lr=Config.lr)
 
     # 创建一个简单的循环，用于迭代数据样本
     train_epoch = smp_utils.train.TrainEpoch(
@@ -122,11 +120,12 @@ if __name__ == '__main__':
 
         # 保存当前轮次模型
         torch.save(model, os.path.join(result_path, 'latest_model.pth'))
+        print('Latest Model saved!')
         # 保存最好的模型
         if max_score < val_logs[i]['iou_score']:
             max_score = val_logs[i]['iou_score']
             torch.save(model, os.path.join(result_path, 'best_model.pth'))
-            print('Model saved!')
+            print('Best Model saved!')
 
         if i == 25:
             optimizer.param_groups[0]['lr'] = Config.lr_low
