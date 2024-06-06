@@ -6,6 +6,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import json
 import ssl
+from collections import defaultdict
 
 import segmentation_models_pytorch as smp
 import torch
@@ -105,10 +106,11 @@ def local_train(net_local, data_dir, client):
         # 保存最好的模型
         if max_score < val_logs[i]['iou_score']:
             max_score = val_logs[i]['iou_score']
-            torch.save(net_local, os.path.join(result_path, 'best_model.pth'))
+            best_net_local = net_local
+            torch.save(best_net_local, os.path.join(result_path, 'best_model.pth'))
             print('Best Model saved!')
 
-    return net_local.state_dict(), train_logs, val_logs
+    return best_net_local.state_dict(), train_logs, val_logs
 
 
 def global_val(data_dir, net_global):
@@ -156,34 +158,32 @@ def global_val(data_dir, net_global):
 
 
 if __name__ == '__main__':
-    local_w = {}
-    local_train_log = {}
-    local_val_log = {}
-    global_val_log = {}
+    local_w = defaultdict(dict)
+    local_train_log = defaultdict(dict)
+    local_val_log = defaultdict(dict)
+    global_val_log = defaultdict(dict)
     net_global = smp.UnetPlusPlus(
         encoder_name=Config.encoder,
         encoder_weights=Config.encoder_weights,
         classes=len(Config.classes),
         activation=Config.activation,
     )
-    # 数据集所在的目录
+    # 总联邦学习训练轮次
     for e in range(Config.epoch):
         print('Epoch: {}'.format(e))
-        local_w[e] = {}
-        local_train_log[e] = {}
-        local_val_log[e] = {}
-        global_val_log[e] = {}
         net_global.train()
+        # 每个client在本地训练一定轮次
         for i in range(1, Config.region_num + 1):
             print('----Client {} local train----'.format(i))
             local_w[e][i], local_train_log[e][i], local_val_log[e][i] = local_train(net_global, Config.get_data_dir(i), i)
+        # 模型聚合
         w_avg = FedAvg(local_w[e])
         net_global.load_state_dict(w_avg)
         net_global.eval()
         global_val_log[e] = global_val(Config.get_data_dir(0), net_global)
-    result_path = os.path.join('result', Config.data_name)
 
     # 保存数据
+    result_path = os.path.join('result', Config.data_name)
     if not os.path.exists(result_path):
         os.makedirs(result_path)
     with open(os.path.join(result_path, 'local_train_logs.json'), "w") as file:
