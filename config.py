@@ -16,7 +16,7 @@ class Config:
     # 网络训练参数
     device = 'cuda'
     batch_size = 2
-    lr = 0.0001
+    lr = 1e-4
     num_workers = 0
     epoch = 5
     client_epoch = 3
