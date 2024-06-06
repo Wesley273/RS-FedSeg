@@ -3,15 +3,11 @@ import os
 
 from datasets import BH_POOL, BH_WATERTANK, CamVid
 
-dataset_dict = {'CamVid': CamVid, 'BH_POOL': BH_POOL, 'BH_WATERTANK': BH_WATERTANK}
-
-
-def get_data_dir(data_name, client):
-    if data_name == 'CamVid':
-        data_dir = os.path.join('data', data_name)
-    else:
-        data_dir = os.path.join('data', data_name, 'REGION_{}'.format(client))
-    return data_dir
+data_dict = {'CamVid': {'dataset': CamVid, 'regions': 1},
+             'BH_POOL': {'dataset': BH_POOL, 'regions': 8},
+             'MINI_BH_POOL': {'dataset': BH_POOL, 'regions': 8},
+             'BH_WATERTANK': {'dataset': BH_WATERTANK, 'regions': 8}
+             }
 
 
 class Config:
@@ -19,17 +15,25 @@ class Config:
     device = 'cuda'
     batch_size = 2
     lr = 0.0001
-    lr_low = 1e-5
-    num_workers = 4
+    num_workers = 0
+    epoch = 5
+    client_epoch = 2
 
     # 数据集加载
-    data_name = 'BH_POOL'
-    dataset = dataset_dict[data_name]
-    client = 1
-    data_dir = get_data_dir(data_name, client)
+    data_name = 'MINI_BH_POOL'
+    dataset = data_dict[data_name]['dataset']
+    region_num = data_dict[data_name]['regions']
 
     # 网络结构
     encoder = 'se_resnext50_32x4d'
     encoder_weights = 'imagenet'
     classes = dataset.CLASSES
     activation = 'sigmoid'  # could be None for logits or 'softmax2d' for multiclass segmentation
+
+    @classmethod
+    def get_data_dir(cls, client):
+        if Config.data_name == 'CamVid':
+            data_dir = os.path.join('data', cls.data_name)
+        else:
+            data_dir = os.path.join('data', cls.data_name, 'REGION_{}'.format(client))
+        return data_dir

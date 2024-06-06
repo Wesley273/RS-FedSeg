@@ -42,40 +42,34 @@ def visualize(**images):
 # ---------------------------------------------------------------
 if __name__ == '__main__':
 
-    DATA_DIR = Config.data_dir
-    MyDataset = Config.dataset
+    DATA_DIR = Config.get_data_dir(0)
 
     # 测试集
     x_test_dir = os.path.join(DATA_DIR, 'test')
     y_test_dir = os.path.join(DATA_DIR, 'testannot')
 
-    ENCODER = Config.encoder
-    ENCODER_WEIGHTS = Config.encoder_weights
-    CLASSES = Config.classes
-    ACTIVATION = Config.activation  # could be None for logits or 'softmax2d' for multiclass segmentation
-
-    preprocessing_fn = smp.encoders.get_preprocessing_fn(ENCODER, ENCODER_WEIGHTS)
+    pretrained = smp.encoders.get_preprocessing_fn(Config.encoder, Config.encoder_weights)
     # ---------------------------------------------------------------
     # $# 测试训练出来的最佳模型
 
     # 加载最佳模型
-    best_model = torch.load(os.path.join('result', Config.data_name, 'best_model.pth'))
+    best_model = torch.load(os.path.join('result', Config.data_name, 'global', 'global_model.pth'))
 
     # 创建测试数据集
-    test_dataset = MyDataset(
+    test_dataset = Config.dataset(
         x_test_dir,
         y_test_dir,
         augmentation=augment_validation(),
-        preprocessing=preprocessing(preprocessing_fn),
-        classes=CLASSES,
+        preprocessing=preprocessing(pretrained),
+        classes=Config.classes,
     )
 
     # ---------------------------------------------------------------
     # $# 图像分割结果可视化展示
     # 对没有进行图像处理转化的测试集进行图像可视化展示
-    test_dataset_vis = MyDataset(
+    test_dataset_vis = Config.dataset(
         x_test_dir, y_test_dir,
-        classes=CLASSES,
+        classes=Config.classes,
     )
     # 从测试集中随机挑选3张图片进行测试
     for i in range(3):
