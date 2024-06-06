@@ -1,6 +1,9 @@
 # -*- coding: UTF-8 -*-
 import os
 
+import segmentation_models_pytorch as smp
+from segmentation_models_pytorch import utils as smp_utils
+
 from datasets import BH_POOL, BH_WATERTANK, CamVid
 
 data_dict = {'CamVid': {'dataset': CamVid, 'regions': 1},
@@ -16,18 +19,27 @@ class Config:
     lr = 0.0001
     num_workers = 0
     epoch = 5
-    client_epoch = 5
+    client_epoch = 3
 
     # 数据集加载
     data_name = 'BH_POOL'
     dataset = data_dict[data_name]['dataset']
     region_num = data_dict[data_name]['regions']
 
-    # 网络结构
+    # 网络结构与预训练参数
     encoder = 'se_resnext50_32x4d'
     encoder_weights = 'imagenet'
     classes = dataset.CLASSES
     activation = 'sigmoid'  # could be None for logits or 'softmax2d' for multiclass segmentation
+    preprocessing_fn = smp.encoders.get_preprocessing_fn(encoder, encoder_weights)
+
+    # 损失函数与评价指标
+    loss = smp_utils.losses.DiceLoss()
+    metrics = [smp_utils.metrics.IoU(),
+               smp_utils.metrics.Accuracy(),
+               smp_utils.metrics.Precision(),
+               smp_utils.metrics.Fscore(),
+               smp_utils.metrics.Recall()]
 
     @classmethod
     def get_data_dir(cls, client):

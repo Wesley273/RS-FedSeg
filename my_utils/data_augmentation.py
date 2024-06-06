@@ -43,12 +43,12 @@ def augment_train():
     return albu.Compose(train_transform)
 
 
-def augment_validation():
+def augment_val():
     """调整图像使得图片的分辨率长宽能被32整除"""
-    test_transform = [
-        albu.PadIfNeeded(384, 480)
+    val_transform = [
+        albu.PadIfNeeded(480, 480)
     ]
-    return albu.Compose(test_transform)
+    return albu.Compose(val_transform)
 
 
 def to_tensor(x, **kwargs):

@@ -125,14 +125,17 @@ def delete_empty(img_folder, mask_folder):
             print('{}为空，已被删除.'.format(img_name))
 
 
-def get_train_val(split_folder, img_folder, mask_folder):
-    train_folder = os.path.join(split_folder, 'train')
-    trainannot_folder = os.path.join(split_folder, 'trainannot')
-    val_folder = os.path.join(split_folder, 'val')
-    valannot_folder = os.path.join(split_folder, 'valannot')
+def get_train_val(parent_folder):
+    train_folder = os.path.join(parent_folder, 'train')
+    trainannot_folder = os.path.join(parent_folder, 'trainannot')
+    val_folder = os.path.join(parent_folder, 'val')
+    valannot_folder = os.path.join(parent_folder, 'valannot')
     for path in [train_folder, trainannot_folder, val_folder, valannot_folder]:
         if not os.path.exists(path):
             os.makedirs(path)
+
+    img_folder = os.path.join(parent_folder, 'IMAGES')
+    mask_folder = os.path.join(parent_folder, 'ANNOTATION')
 
     mask_list = os.listdir(mask_folder)
     train_count = int(len(mask_list) * 0.9)
@@ -147,14 +150,15 @@ def get_train_val(split_folder, img_folder, mask_folder):
         shutil.move(os.path.join(img_folder, img_name), os.path.join(val_folder, img_name))
 
 
-def get_test(split_folder):
-    train_folder = os.path.join(split_folder, 'train')
-    trainannot_folder = os.path.join(split_folder, 'trainannot')
-    test_folder = os.path.join(split_folder, 'test')
-    testannot_folder = os.path.join(split_folder, 'testannot')
-    for path in [train_folder, trainannot_folder, test_folder, testannot_folder]:
+def get_test(parent_folder):
+    train_folder = os.path.join(parent_folder, 'train')
+    trainannot_folder = os.path.join(parent_folder, 'trainannot')
+    test_folder = os.path.join(parent_folder, 'test')
+    testannot_folder = os.path.join(parent_folder, 'testannot')
+    for path in [test_folder, testannot_folder]:
         if not os.path.exists(path):
             os.makedirs(path)
+            
     mask_list = os.listdir(train_folder)
     test_count = int(len(mask_list) * (1 / 9))
     for i, img_name in tqdm(enumerate(mask_list)):
@@ -184,5 +188,5 @@ if __name__ == "__main__":
         step = 240
         # image_split(img_folder, out_img_folder, mask_folder, out_mask_folder, size_w, size_h, step)
         # delete_empty(out_img_folder, out_mask_folder)
-        # get_train_val(split_folder, out_img_folder, out_mask_folder)
+        # get_train_val(split_folder)
         get_test(split_folder)

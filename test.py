@@ -8,12 +8,10 @@ import ssl
 
 import matplotlib.pyplot as plt
 import numpy as np
-import segmentation_models_pytorch as smp
 import torch
 
 from config import Config
-from datasets import BH_POOL, BH_WATERTANK, CamVid
-from my_utils.data_augmentation import (augment_train, augment_validation,
+from my_utils.data_augmentation import (augment_val,
                                         preprocessing)
 
 if torch.cuda.is_available():
@@ -41,14 +39,12 @@ def visualize(**images):
 
 # ---------------------------------------------------------------
 if __name__ == '__main__':
-
     DATA_DIR = Config.get_data_dir(0)
 
     # 测试集
-    x_test_dir = os.path.join(DATA_DIR, 'test')
-    y_test_dir = os.path.join(DATA_DIR, 'testannot')
+    test_dir = os.path.join(DATA_DIR, 'test')
+    testannot_dir = os.path.join(DATA_DIR, 'testannot')
 
-    pretrained = smp.encoders.get_preprocessing_fn(Config.encoder, Config.encoder_weights)
     # ---------------------------------------------------------------
     # $# 测试训练出来的最佳模型
 
@@ -57,10 +53,10 @@ if __name__ == '__main__':
 
     # 创建测试数据集
     test_dataset = Config.dataset(
-        x_test_dir,
-        y_test_dir,
-        augmentation=augment_validation(),
-        preprocessing=preprocessing(pretrained),
+        test_dir,
+        testannot_dir,
+        augmentation=augment_val(),
+        preprocessing=preprocessing(Config.preprocessing_fn),
         classes=Config.classes,
     )
 
@@ -68,7 +64,7 @@ if __name__ == '__main__':
     # $# 图像分割结果可视化展示
     # 对没有进行图像处理转化的测试集进行图像可视化展示
     test_dataset_vis = Config.dataset(
-        x_test_dir, y_test_dir,
+        test_dir, testannot_dir,
         classes=Config.classes,
     )
     # 从测试集中随机挑选3张图片进行测试
