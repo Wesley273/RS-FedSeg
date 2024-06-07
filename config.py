@@ -8,20 +8,21 @@ from datasets import NonIID
 
 
 class Config:
-    data_dict = {'BH_POOL': {'dataset': NonIID, 'regions': 8},
-                 'MINI_BH_POOL': {'dataset': NonIID, 'regions': 8},
-                 'BH_WATERTANK': {'dataset': NonIID, 'regions': 8},
-                 'IAIL': {'dataset': NonIID, 'regions': 5}}
     # 网络训练参数
     device = 'cuda'
-    batch_size = 2
+    batch_size = 8
     lr = 1e-4
     num_workers = 0
     epoch = 5
     client_epoch = 3
 
     # 数据集加载
-    data_name = 'IAIL'
+    data_dict = {'BH_POOL': {'dataset': NonIID, 'regions': 8},
+                 'MINI_BH_POOL': {'dataset': NonIID, 'regions': 8},
+                 'BH_WATERTANK': {'dataset': NonIID, 'regions': 6},
+                 'IAIL': {'dataset': NonIID, 'regions': 5}}
+
+    data_name = 'BH_POOL'
     data_type = 'non_iid'
     dataset = data_dict[data_name]['dataset']
     region_num = data_dict[data_name]['regions']
@@ -49,3 +50,10 @@ class Config:
     @classmethod
     def get_result_dir(cls):
         return os.path.join('result', Config.data_name, cls.data_type)
+
+    @classmethod
+    def get_net(cls):
+        return smp.Unet(encoder_name=cls.encoder,
+                        encoder_weights=cls.encoder_weights,
+                        classes=len(cls.classes),
+                        activation=cls.activation)

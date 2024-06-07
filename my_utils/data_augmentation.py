@@ -8,7 +8,7 @@ def augment_train():
 
         albu.ShiftScaleRotate(scale_limit=0.5, rotate_limit=0, shift_limit=0.1, p=1, border_mode=0),
 
-        albu.PadIfNeeded(min_height=320, min_width=320, always_apply=True, border_mode=0),
+        albu.PadIfNeeded(min_height=480, min_width=480),
         albu.RandomCrop(height=320, width=320, always_apply=True),
 
         albu.GaussNoise(p=0.2),

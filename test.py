@@ -8,10 +8,10 @@ import ssl
 
 import matplotlib.pyplot as plt
 import numpy as np
-import segmentation_models_pytorch as smp
 import torch
 
 from config import Config
+from datasets import NonIIDFull
 from my_utils.data_augmentation import augment_val, preprocessing
 
 if torch.cuda.is_available():
@@ -43,16 +43,11 @@ if __name__ == '__main__':
     testannot_dir = os.path.join(DATA_DIR, 'testannot')
 
     # 加载最佳模型
-    best_net = smp.UnetPlusPlus(
-        encoder_name=Config.encoder,
-        encoder_weights=Config.encoder_weights,
-        classes=len(Config.classes),
-        activation=Config.activation,
-    ).to(DEVICE)
+    best_net = Config.get_net().to(DEVICE)
     best_net.load_state_dict(torch.load(os.path.join('result', Config.data_name, 'global', 'global_net.pth')))
 
     # 创建测试数据集
-    test_dataset = Config.dataset(
+    test_dataset = NonIIDFull(
         test_dir,
         testannot_dir,
         augmentation=augment_val(),
@@ -61,7 +56,7 @@ if __name__ == '__main__':
     )
 
     # 用没有进行图像处理转化的测试集进行图像可视化展示
-    test_dataset_vis = Config.dataset(test_dir, testannot_dir, classes=Config.classes)
+    test_dataset_vis = NonIIDFull(test_dir, testannot_dir, classes=Config.classes)
     # 从测试集中随机挑选3张图片进行测试
     for i in range(3):
         n = np.random.choice(len(test_dataset))

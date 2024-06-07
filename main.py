@@ -8,9 +8,9 @@ import json
 import ssl
 from collections import defaultdict
 
-import segmentation_models_pytorch as smp
 import torch
 from segmentation_models_pytorch import utils as smp_utils
+from torch.cuda.amp import autocast as autocast
 from torch.utils.data import DataLoader
 
 from config import Config
@@ -68,6 +68,7 @@ def local_train(local_net, data_dir, client):
     val_logs = {}
     for i in range(0, Config.client_epoch):
         print('Client epoch: {}'.format(i))
+        # with autocast():
         train_logs[i] = train_epoch.run(train_loader)
         val_logs[i] = val_epoch.run(val_loader)
 
@@ -132,12 +133,7 @@ if __name__ == '__main__':
     local_val_log = defaultdict(dict)
     global_val_log = defaultdict(dict)
 
-    global_net = smp.UnetPlusPlus(
-        encoder_name=Config.encoder,
-        encoder_weights=Config.encoder_weights,
-        classes=len(Config.classes),
-        activation=Config.activation,
-    )
+    global_net = Config.get_net()
 
     # 总联邦学习训练轮次
     for e in range(Config.epoch):
