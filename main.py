@@ -81,13 +81,13 @@ def local_train(local_net, data_dir, client):
         with open(os.path.join(result_path, 'val_logs.json'), "w") as file:
             json.dump(val_logs, file)
         # 保存当前轮次模型
-        torch.save(local_net, os.path.join(result_path, 'latest_net.pth'))
+        torch.save(local_net.state_dict(), os.path.join(result_path, 'latest_net.pth'))
         print('Latest local net saved!')
         # 保存最好的模型
         if max_score < val_logs[i]['iou_score']:
             max_score = val_logs[i]['iou_score']
             best_local_net = local_net
-            torch.save(best_local_net, os.path.join(result_path, 'best_net.pth'))
+            torch.save(best_local_net.state_dict(), os.path.join(result_path, 'best_net.pth'))
             print('Best local net saved!')
 
     return best_local_net.state_dict(), train_logs, val_logs
@@ -123,7 +123,7 @@ def global_val(data_dir, global_net):
     with open(os.path.join(result_path, 'val_logs.json'), "w") as file:
         json.dump(val_logs, file)
     # 保存当前全局模型
-    torch.save(global_net, os.path.join(result_path, 'global_net.pth'))
+    torch.save(global_net.state_dict(), os.path.join(result_path, 'global_net.pth'))
     print('Global net saved!')
     return val_logs
 

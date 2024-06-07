@@ -1,14 +1,14 @@
 # -*- coding: UTF-8 -*-
 import os
-import shutil
 import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import shutil
 
 import cv2
 import numpy as np
 from tqdm import tqdm
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 
 #  图像宽不足裁剪宽度,填充至裁剪宽度
 
@@ -158,7 +158,7 @@ def get_test(parent_folder):
     for path in [test_folder, testannot_folder]:
         if not os.path.exists(path):
             os.makedirs(path)
-            
+
     mask_list = os.listdir(train_folder)
     test_count = int(len(mask_list) * (1 / 9))
     for i, img_name in tqdm(enumerate(mask_list)):

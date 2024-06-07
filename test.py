@@ -8,11 +8,11 @@ import ssl
 
 import matplotlib.pyplot as plt
 import numpy as np
+import segmentation_models_pytorch as smp
 import torch
 
 from config import Config
-from my_utils.data_augmentation import (augment_val,
-                                        preprocessing)
+from my_utils.data_augmentation import augment_val, preprocessing
 
 if torch.cuda.is_available():
     DEVICE = torch.device(Config.device)
@@ -20,8 +20,6 @@ else:
     DEVICE = torch.device('cpu')
 
 ssl._create_default_https_context = ssl._create_unverified_context
-
-# 图像分割结果的可视化展示
 
 
 def visualize(**images):
@@ -37,19 +35,21 @@ def visualize(**images):
     plt.show()
 
 
-# ---------------------------------------------------------------
 if __name__ == '__main__':
-    DATA_DIR = Config.get_data_dir(0)
+    DATA_DIR = Config.get_data_dir(client=0)
 
     # 测试集
     test_dir = os.path.join(DATA_DIR, 'test')
     testannot_dir = os.path.join(DATA_DIR, 'testannot')
 
-    # ---------------------------------------------------------------
-    # $# 测试训练出来的最佳模型
-
     # 加载最佳模型
-    best_model = torch.load(os.path.join('result', Config.data_name, 'global', 'global_model.pth'))
+    best_net = smp.UnetPlusPlus(
+        encoder_name=Config.encoder,
+        encoder_weights=Config.encoder_weights,
+        classes=len(Config.classes),
+        activation=Config.activation,
+    ).to(DEVICE)
+    best_net.load_state_dict(torch.load(os.path.join('result', Config.data_name, 'global', 'global_net.pth')))
 
     # 创建测试数据集
     test_dataset = Config.dataset(
@@ -60,13 +60,8 @@ if __name__ == '__main__':
         classes=Config.classes,
     )
 
-    # ---------------------------------------------------------------
-    # $# 图像分割结果可视化展示
-    # 对没有进行图像处理转化的测试集进行图像可视化展示
-    test_dataset_vis = Config.dataset(
-        test_dir, testannot_dir,
-        classes=Config.classes,
-    )
+    # 用没有进行图像处理转化的测试集进行图像可视化展示
+    test_dataset_vis = Config.dataset(test_dir, testannot_dir, classes=Config.classes)
     # 从测试集中随机挑选3张图片进行测试
     for i in range(3):
         n = np.random.choice(len(test_dataset))
@@ -77,11 +72,7 @@ if __name__ == '__main__':
         gt_mask = gt_mask.squeeze()
 
         x_tensor = torch.from_numpy(image).to(DEVICE).unsqueeze(0)
-        pr_mask = best_model.predict(x_tensor)
+        pr_mask = best_net.predict(x_tensor)
         pr_mask = (pr_mask.squeeze().cpu().numpy().round())
 
-        visualize(
-            image=image_vis,
-            ground_truth_mask=gt_mask,
-            predicted_mask=pr_mask
-        )
+        visualize(image=image_vis, ground_truth_mask=gt_mask, predicted_mask=pr_mask)
