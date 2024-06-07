@@ -4,14 +4,14 @@ import os
 import segmentation_models_pytorch as smp
 from segmentation_models_pytorch import utils as smp_utils
 
-from datasets import NonIID, CamVid
-
-data_dict = {'BH_POOL': {'dataset': NonIID, 'regions': 8},
-             'MINI_BH_POOL': {'dataset': NonIID, 'regions': 8},
-             'BH_WATERTANK': {'dataset': NonIID, 'regions': 8}}
+from datasets import NonIID
 
 
 class Config:
+    data_dict = {'BH_POOL': {'dataset': NonIID, 'regions': 8},
+                 'MINI_BH_POOL': {'dataset': NonIID, 'regions': 8},
+                 'BH_WATERTANK': {'dataset': NonIID, 'regions': 8},
+                 'IAIL': {'dataset': NonIID, 'regions': 5}}
     # 网络训练参数
     device = 'cuda'
     batch_size = 2
@@ -21,7 +21,7 @@ class Config:
     client_epoch = 3
 
     # 数据集加载
-    data_name = 'BH_WATERTANK'
+    data_name = 'IAIL'
     data_type = 'non_iid'
     dataset = data_dict[data_name]['dataset']
     region_num = data_dict[data_name]['regions']

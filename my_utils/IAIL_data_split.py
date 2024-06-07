@@ -40,7 +40,7 @@ def fill_right_bottom(img, size_w, size_h):
 
 def image_split(img_folder, out_img_folder, mask_folder, out_mask_folder, size_w=480, size_h=480, step=240):
     mask_list = os.listdir(mask_folder)
-    for input_folder, out_folder, suffix in [(img_folder, out_img_folder, '.jpg'), (mask_folder, out_mask_folder, '.png')]:
+    for input_folder, out_folder, suffix in [(img_folder, out_img_folder, '.tif'), (mask_folder, out_mask_folder, '.tif')]:
         count = 0
         for img_name in mask_list:
             if not os.path.exists(out_folder):
@@ -136,8 +136,8 @@ def get_train_val(parent_folder):
         if not os.path.exists(path):
             os.makedirs(path)
 
-    img_folder = os.path.join(parent_folder, 'IMAGES')
-    mask_folder = os.path.join(parent_folder, 'ANNOTATION')
+    img_folder = os.path.join(parent_folder, 'img')
+    mask_folder = os.path.join(parent_folder, 'mask')
 
     mask_list = os.listdir(mask_folder)
     train_count = int(len(mask_list) * 0.9)
@@ -173,16 +173,16 @@ def get_test(parent_folder):
 if __name__ == "__main__":
     region_num = Config.data_dict['IAIL']['regions']
     for i in range(1, region_num + 1):
-        raw_folder = os.path.join('data', 'BH_POOL', 'REGION_{}'.format(i))
-        split_folder = os.path.join('data', 'BH_POOL', 'REGION_{}'.format(i))
+        raw_folder = os.path.join('data', 'IAIL', 'REGION_{}'.format(i))
+        split_folder = os.path.join('data', 'IAIL_SPLIT', 'REGION_{}'.format(i))
         #  图像数据集文件夹
-        img_folder = os.path.join(raw_folder, 'IMAGES')
+        img_folder = os.path.join(raw_folder, 'img')
         #  切割得到的图像数据集存放文件夹
-        out_img_folder = os.path.join(split_folder, 'IMAGES')
+        out_img_folder = os.path.join(split_folder, 'img')
         #  mask数据集文件夹
-        mask_folder = os.path.join(raw_folder, 'ANNOTATION')
+        mask_folder = os.path.join(raw_folder, 'mask')
         #  切割后数据集的标签文件存放文件夹
-        out_mask_folder = os.path.join(split_folder, 'ANNOTATION')
+        out_mask_folder = os.path.join(split_folder, 'mask')
         #  切割图像宽
         size_w = 480
         #  切割图像高
@@ -191,5 +191,5 @@ if __name__ == "__main__":
         step = 240
         # image_split(img_folder, out_img_folder, mask_folder, out_mask_folder, size_w, size_h, step)
         # delete_empty(out_img_folder, out_mask_folder)
-        # get_train_val(split_folder)
+        get_train_val(split_folder)
         get_test(split_folder)
