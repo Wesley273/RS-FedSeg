@@ -11,8 +11,7 @@ import numpy as np
 import torch
 
 from config import Config
-from datasets import NonIIDFull
-from my_utils.data_augmentation import augment_val, preprocessing
+from datasets import DataAug, NonIIDFull
 
 if torch.cuda.is_available():
     DEVICE = torch.device(Config.device)
@@ -44,14 +43,14 @@ if __name__ == '__main__':
 
     # 加载最佳模型
     best_net = Config.get_net().to(DEVICE)
-    best_net.load_state_dict(torch.load(os.path.join('result', Config.data_name, 'global', 'global_net.pth')))
+    best_net.load_state_dict(torch.load(os.path.join(Config.get_result_dir(), 'global', 'global_net.pth')))
 
     # 创建测试数据集
     test_dataset = NonIIDFull(
         test_dir,
         testannot_dir,
-        augmentation=augment_val(),
-        preprocessing=preprocessing(Config.preprocessing_fn),
+        augmentation=DataAug.augment_val(),
+        preprocessing=DataAug.preprocessing(Config.preprocessing_fn),
         classes=Config.classes,
     )
 

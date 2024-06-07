@@ -14,10 +14,8 @@ from torch.cuda.amp import autocast as autocast
 from torch.utils.data import DataLoader
 
 from config import Config
-from datasets import NonIID, NonIIDFull
-from fed import FedAvg
-from my_utils.data_augmentation import (augment_train, augment_val,
-                                        preprocessing)
+from datasets import DataAug, NonIID, NonIIDFull
+from fed_algos import FedAvg
 
 if torch.cuda.is_available():
     DEVICE = torch.device(Config.device)
@@ -40,16 +38,16 @@ def local_train(local_net, data_dir, client):
     train_dataset = NonIID(
         train_dir,
         trainannot_dir,
-        augmentation=augment_train(),
-        preprocessing=preprocessing(Config.preprocessing_fn)
+        augmentation=DataAug.augment_train(),
+        preprocessing=DataAug.preprocessing(Config.preprocessing_fn)
     )
 
     # 加载验证数据集
     val_dataset = NonIID(
         val_dir,
         valannot_dir,
-        augmentation=augment_val(),
-        preprocessing=preprocessing(Config.preprocessing_fn)
+        augmentation=DataAug.augment_val(),
+        preprocessing=DataAug.preprocessing(Config.preprocessing_fn)
     )
 
     # 需根据显卡的性能进行设置，batch_size为每次迭代中一次训练的图片数，num_workers为训练时的工作进程数，如果显卡不太行或者显存空间不够，将batch_size调低并将num_workers调为0
@@ -99,13 +97,13 @@ def global_val(data_dirs, global_net):
     val_annot_dirs = [os.path.join(data_dir, 'valannot') for data_dir in data_dirs]
 
     # 加载验证数据集
-    valid_dataset = NonIIDFull(
+    val_dataset = NonIIDFull(
         val_dirs,
         val_annot_dirs,
-        augmentation=augment_val(),
-        preprocessing=preprocessing(Config.preprocessing_fn)
+        augmentation=DataAug.augment_val(),
+        preprocessing=DataAug.preprocessing(Config.preprocessing_fn)
     )
-    val_loader = DataLoader(valid_dataset, batch_size=Config.batch_size, shuffle=False, num_workers=Config.num_workers)
+    val_loader = DataLoader(val_dataset, batch_size=Config.batch_size, shuffle=False, num_workers=Config.num_workers)
 
     # 创建一个epoch，用于迭代数据样本
     val_epoch = smp_utils.train.ValidEpoch(global_net, loss=Config.loss, metrics=Config.metrics, device=DEVICE, verbose=True)
