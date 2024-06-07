@@ -4,12 +4,11 @@ import os
 import segmentation_models_pytorch as smp
 from segmentation_models_pytorch import utils as smp_utils
 
-from datasets import BH_POOL, BH_WATERTANK, CamVid
+from datasets import NonIID, CamVid
 
-data_dict = {'CamVid': {'dataset': CamVid, 'regions': 1},
-             'BH_POOL': {'dataset': BH_POOL, 'regions': 8},
-             'MINI_BH_POOL': {'dataset': BH_POOL, 'regions': 8},
-             'BH_WATERTANK': {'dataset': BH_WATERTANK, 'regions': 8}}
+data_dict = {'BH_POOL': {'dataset': NonIID, 'regions': 8},
+             'MINI_BH_POOL': {'dataset': NonIID, 'regions': 8},
+             'BH_WATERTANK': {'dataset': NonIID, 'regions': 8}}
 
 
 class Config:
@@ -22,7 +21,8 @@ class Config:
     client_epoch = 3
 
     # 数据集加载
-    data_name = 'BH_POOL'
+    data_name = 'BH_WATERTANK'
+    data_type = 'non_iid'
     dataset = data_dict[data_name]['dataset']
     region_num = data_dict[data_name]['regions']
 
@@ -43,8 +43,9 @@ class Config:
 
     @classmethod
     def get_data_dir(cls, client):
-        if Config.data_name == 'CamVid':
-            data_dir = os.path.join('data', cls.data_name)
-        else:
-            data_dir = os.path.join('data', cls.data_name, 'REGION_{}'.format(client))
+        data_dir = os.path.join('data', cls.data_name, 'REGION_{}'.format(client))
         return data_dir
+
+    @classmethod
+    def get_result_dir(cls):
+        return os.path.join('result', Config.data_name, cls.data_type)

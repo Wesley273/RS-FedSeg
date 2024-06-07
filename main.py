@@ -14,6 +14,7 @@ from segmentation_models_pytorch import utils as smp_utils
 from torch.utils.data import DataLoader
 
 from config import Config
+from datasets import NonIID, NonIIDFull
 from fed import FedAvg
 from my_utils.data_augmentation import (augment_train, augment_val,
                                         preprocessing)
@@ -36,21 +37,19 @@ def local_train(local_net, data_dir, client):
     valannot_dir = os.path.join(data_dir, 'valannot')
 
     # 加载训练数据集
-    train_dataset = Config.dataset(
+    train_dataset = NonIID(
         train_dir,
         trainannot_dir,
         augmentation=augment_train(),
-        preprocessing=preprocessing(Config.preprocessing_fn),
-        classes=Config.classes,
+        preprocessing=preprocessing(Config.preprocessing_fn)
     )
 
     # 加载验证数据集
-    val_dataset = Config.dataset(
+    val_dataset = NonIID(
         val_dir,
         valannot_dir,
         augmentation=augment_val(),
-        preprocessing=preprocessing(Config.preprocessing_fn),
-        classes=Config.classes,
+        preprocessing=preprocessing(Config.preprocessing_fn)
     )
 
     # 需根据显卡的性能进行设置，batch_size为每次迭代中一次训练的图片数，num_workers为训练时的工作进程数，如果显卡不太行或者显存空间不够，将batch_size调低并将num_workers调为0
@@ -73,38 +72,37 @@ def local_train(local_net, data_dir, client):
         val_logs[i] = val_epoch.run(val_loader)
 
         # 保存训练记录
-        result_path = os.path.join('result', Config.data_name, 'client_{}'.format(client))
-        if not os.path.exists(result_path):
-            os.makedirs(result_path)
-        with open(os.path.join(result_path, 'train_logs.json'), "w") as file:
+        result_dir = os.path.join(Config.get_result_dir(), 'client_{}'.format(client))
+        if not os.path.exists(result_dir):
+            os.makedirs(result_dir)
+        with open(os.path.join(result_dir, 'train_logs.json'), "w") as file:
             json.dump(train_logs, file)
-        with open(os.path.join(result_path, 'val_logs.json'), "w") as file:
+        with open(os.path.join(result_dir, 'val_logs.json'), "w") as file:
             json.dump(val_logs, file)
         # 保存当前轮次模型
-        torch.save(local_net.state_dict(), os.path.join(result_path, 'latest_net.pth'))
+        torch.save(local_net.state_dict(), os.path.join(result_dir, 'latest_net.pth'))
         print('Latest local net saved!')
         # 保存最好的模型
         if max_score < val_logs[i]['iou_score']:
             max_score = val_logs[i]['iou_score']
             best_local_net = local_net
-            torch.save(best_local_net.state_dict(), os.path.join(result_path, 'best_net.pth'))
+            torch.save(best_local_net.state_dict(), os.path.join(result_dir, 'best_net.pth'))
             print('Best local net saved!')
 
     return best_local_net.state_dict(), train_logs, val_logs
 
 
-def global_val(data_dir, global_net):
+def global_val(data_dirs, global_net):
     # 验证集
-    val_dir = os.path.join(data_dir, 'val')
-    val_annot_dir = os.path.join(data_dir, 'valannot')
+    val_dirs = [os.path.join(data_dir, 'val') for data_dir in data_dirs]
+    val_annot_dirs = [os.path.join(data_dir, 'valannot') for data_dir in data_dirs]
 
     # 加载验证数据集
-    valid_dataset = Config.dataset(
-        val_dir,
-        val_annot_dir,
+    valid_dataset = NonIIDFull(
+        val_dirs,
+        val_annot_dirs,
         augmentation=augment_val(),
-        preprocessing=preprocessing(Config.preprocessing_fn),
-        classes=Config.classes,
+        preprocessing=preprocessing(Config.preprocessing_fn)
     )
     val_loader = DataLoader(valid_dataset, batch_size=Config.batch_size, shuffle=False, num_workers=Config.num_workers)
 
@@ -117,13 +115,13 @@ def global_val(data_dir, global_net):
     val_logs = val_epoch.run(val_loader)
 
     # 保存验证数据
-    result_path = os.path.join('result', Config.data_name, 'global')
-    if not os.path.exists(result_path):
-        os.makedirs(result_path)
-    with open(os.path.join(result_path, 'val_logs.json'), "w") as file:
+    result_dir = os.path.join(Config.get_result_dir(), 'global')
+    if not os.path.exists(result_dir):
+        os.makedirs(result_dir)
+    with open(os.path.join(result_dir, 'val_logs.json'), "w") as file:
         json.dump(val_logs, file)
     # 保存当前全局模型
-    torch.save(global_net.state_dict(), os.path.join(result_path, 'global_net.pth'))
+    torch.save(global_net.state_dict(), os.path.join(result_dir, 'global_net.pth'))
     print('Global net saved!')
     return val_logs
 
@@ -153,15 +151,15 @@ if __name__ == '__main__':
         avg_w = FedAvg(local_w[e])
         global_net.load_state_dict(avg_w)
         global_net.eval()
-        global_val_log[e] = global_val(Config.get_data_dir(0), global_net)
+        global_val_log[e] = global_val([Config.get_data_dir(j) for j in range(1, Config.region_num + 1)], global_net)
 
         # 每一轮保存数据
-        result_path = os.path.join('result', Config.data_name)
-        if not os.path.exists(result_path):
-            os.makedirs(result_path)
-        with open(os.path.join(result_path, 'local_train_logs.json'), "w") as file:
+        result_dir = Config.get_result_dir()
+        if not os.path.exists(result_dir):
+            os.makedirs(result_dir)
+        with open(os.path.join(result_dir, 'local_train_logs.json'), "w") as file:
             json.dump(local_train_log, file)
-        with open(os.path.join(result_path, 'local_val_logs.json'), "w") as file:
+        with open(os.path.join(result_dir, 'local_val_logs.json'), "w") as file:
             json.dump(local_val_log, file)
-        with open(os.path.join(result_path, 'global_val_logs.json'), "w") as file:
+        with open(os.path.join(result_dir, 'global_val_logs.json'), "w") as file:
             json.dump(global_val_log, file)

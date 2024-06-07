@@ -1,3 +1,5 @@
 /data
 *.pyc
 *.pth
+*.zip
+*.7z
