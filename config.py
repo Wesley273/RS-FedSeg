@@ -25,7 +25,7 @@ class Config:
                  'IAIL': {'dataset': Region, 'regions': 5}}
 
     data_name = 'BH_POOL'
-    data_dist = 'non_iid'
+    data_dist = None
     dataset = data_dict[data_name]['dataset']
     region_num = data_dict[data_name]['regions']
 

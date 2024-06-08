@@ -1,5 +1,8 @@
 # -*- coding: UTF-8 -*-
 import os
+import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import albumentations as albu
 import cv2
@@ -10,7 +13,7 @@ from torch.utils.data import Dataset
 class Region(Dataset):
     """
     分布为NonIID的数据集，一般具有多个不同区域
-    
+
     进行图像读取，图像增强增强和图像预处理
 
     Args:
@@ -38,6 +41,9 @@ class Region(Dataset):
 
         self.augmentation = augmentation
         self.preprocessing = preprocessing
+
+    def set_augmentation(self, augmentation):
+        self.augmentation = augmentation
 
     def __getitem__(self, i):
 

@@ -6,15 +6,15 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import json
 import ssl
+from collections import defaultdict
 
 import torch
-from collections import defaultdict
 from torch.cuda.amp import autocast as autocast
+from torch.utils.data import random_split
 
 from config import Config
-from torch.utils.data import random_split
 from fed_algos import FedAvg
-from train import local_train, global_val, get_full_data
+from train import get_full_data, global_val, local_train
 
 if torch.cuda.is_available():
     DEVICE = torch.device(Config.device)
@@ -41,14 +41,16 @@ def get_iid_dataset():
 
 
 if __name__ == '__main__':
-    global_net = Config.get_net()
     Config.data_dist = 'iid'
+
+    global_net = Config.get_net()
     full_val_data, local_train_datas, local_val_datas = get_iid_dataset()
 
     local_w = defaultdict(dict)
     local_train_log = defaultdict(dict)
     local_val_log = defaultdict(dict)
     global_val_log = defaultdict(dict)
+    
     # 总联邦学习训练轮次
     for e in range(Config.epoch):
         print('#**************** Epoch: {} ****************#'.format(e))

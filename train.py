@@ -30,11 +30,11 @@ def split_dataset(dataset):
     val_num = int(0.1 * len(dataset))
     test_num = len(dataset) - train_num - val_num
     train_data, val_data, test_data = random_split(dataset,
-                                                            lengths=[train_num, val_num, test_num],
-                                                            generator=torch.Generator().manual_seed(42))
-    train_data.augmentation = DataAug.augment_train()
-    val_data.augmentation = DataAug.augment_val()
-    test_data.augmentation = DataAug.augment_val()
+                                                   lengths=[train_num, val_num, test_num],
+                                                   generator=torch.Generator().manual_seed(42))
+    train_data.dataset.set_augmentation(DataAug.augment_train())
+    val_data.dataset.set_augmentation(DataAug.augment_val())
+    test_data.dataset.set_augmentation(DataAug.augment_val())
     return train_data, val_data, test_data
 
 
@@ -126,12 +126,14 @@ def global_val(full_val_dataset, global_net):
 
 
 if __name__ == '__main__':
+    Config.data_dist = 'non_iid'
+
+    global_net = Config.get_net()
+
     local_w = defaultdict(dict)
     local_train_log = defaultdict(dict)
     local_val_log = defaultdict(dict)
     global_val_log = defaultdict(dict)
-
-    global_net = Config.get_net()
 
     # 总联邦学习训练轮次
     for e in range(Config.epoch):
