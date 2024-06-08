@@ -13,9 +13,7 @@ from torch.cuda.amp import autocast as autocast
 from torch.utils.data import DataLoader
 
 from config import Config
-from datasets import NonIIDFull
-from my_utils.data_augmentation import (augment_train, augment_val,
-                                        preprocessing)
+from datasets import Full, DataAug
 
 if torch.cuda.is_available():
     DEVICE = torch.device(Config.device)
@@ -33,18 +31,18 @@ if __name__ == '__main__':
     val_dirs = [os.path.join(data_dir, 'val') for data_dir in data_dirs]
     val_annot_dirs = [os.path.join(data_dir, 'valannot') for data_dir in data_dirs]
     # 训练数据集
-    train_dataset = NonIIDFull(
+    train_dataset = Full(
         train_dirs,
         train_annot_dirs,
-        augmentation=augment_train(),
-        preprocessing=preprocessing(Config.preprocessing_fn)
+        augmentation=DataAug.augment_train(),
+        preprocessing=DataAug.preprocessing(Config.preprocessing_fn)
     )
     # 加载验证数据集
-    val_dataset = NonIIDFull(
+    val_dataset = Full(
         val_dirs,
         val_annot_dirs,
-        augmentation=augment_val(),
-        preprocessing=preprocessing(Config.preprocessing_fn)
+        augmentation=DataAug.augment_val(),
+        preprocessing=DataAug.preprocessing(Config.preprocessing_fn)
     )
     train_loader = DataLoader(train_dataset, batch_size=Config.batch_size, shuffle=True, num_workers=Config.num_workers)
     val_loader = DataLoader(val_dataset, batch_size=Config.batch_size, shuffle=False, num_workers=Config.num_workers)

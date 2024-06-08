@@ -4,7 +4,7 @@ import os
 import segmentation_models_pytorch as smp
 from segmentation_models_pytorch import utils as smp_utils
 
-from datasets import NonIID
+from datasets import Region
 
 
 class Config:
@@ -12,17 +12,17 @@ class Config:
     platform = 'win'
     # 网络训练参数
     device = 'cuda'
-    batch_size = 24
+    batch_size = 4
     lr = 1e-4
-    num_workers = 8
+    num_workers = 0
     epoch = 10
     client_epoch = 5
 
     # 数据集加载
-    data_dict = {'BH_POOL': {'dataset': NonIID, 'regions': 8},
-                 'MINI_BH_POOL': {'dataset': NonIID, 'regions': 8},
-                 'BH_WATERTANK': {'dataset': NonIID, 'regions': 6},
-                 'IAIL': {'dataset': NonIID, 'regions': 5}}
+    data_dict = {'BH_POOL': {'dataset': Region, 'regions': 8},
+                 'MINI_BH_POOL': {'dataset': Region, 'regions': 8},
+                 'BH_WATERTANK': {'dataset': Region, 'regions': 6},
+                 'IAIL': {'dataset': Region, 'regions': 5}}
 
     data_name = 'BH_POOL'
     data_type = 'non_iid'
@@ -45,11 +45,11 @@ class Config:
                smp_utils.metrics.Recall()]
 
     @classmethod
-    def get_data_dir(cls, client):
+    def get_data_dir(cls, region):
         if cls.platform == 'win':
-            data_dir = os.path.join('data', cls.data_name, 'REGION_{}'.format(client))
+            data_dir = os.path.join('data', cls.data_name, 'REGION_{}'.format(region))
         if cls.platform == 'linux':
-            data_dir = os.path.join('/root', 'autodl-tmp', Config.data_name, 'REGION_{}'.format(client))
+            data_dir = os.path.join('/root', 'autodl-tmp', Config.data_name, 'REGION_{}'.format(region))
         return data_dir
 
     @classmethod

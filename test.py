@@ -11,7 +11,7 @@ import numpy as np
 import torch
 
 from config import Config
-from datasets import DataAug, NonIIDFull
+from datasets import DataAug, Full
 
 if torch.cuda.is_available():
     DEVICE = torch.device(Config.device)
@@ -35,7 +35,7 @@ def visualize(**images):
 
 
 if __name__ == '__main__':
-    DATA_DIR = Config.get_data_dir(client=0)
+    DATA_DIR = Config.get_data_dir(region=0)
 
     # 测试集
     test_dir = os.path.join(DATA_DIR, 'test')
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     best_net.load_state_dict(torch.load(os.path.join(Config.get_result_dir(), 'global', 'global_net.pth')))
 
     # 创建测试数据集
-    test_dataset = NonIIDFull(
+    test_dataset = Full(
         test_dir,
         testannot_dir,
         augmentation=DataAug.augment_val(),
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     )
 
     # 用没有进行图像处理转化的测试集进行图像可视化展示
-    test_dataset_vis = NonIIDFull(test_dir, testannot_dir, classes=Config.classes)
+    test_dataset_vis = Full(test_dir, testannot_dir, classes=Config.classes)
     # 从测试集中随机挑选3张图片进行测试
     for i in range(3):
         n = np.random.choice(len(test_dataset))

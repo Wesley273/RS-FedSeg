@@ -4,6 +4,7 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import functools
 import json
 import ssl
 from collections import defaultdict
@@ -11,10 +12,10 @@ from collections import defaultdict
 import torch
 from segmentation_models_pytorch import utils as smp_utils
 from torch.cuda.amp import autocast as autocast
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 
 from config import Config
-from datasets import DataAug, NonIID, NonIIDFull
+from datasets import DataAug, Full, Region
 from fed_algos import FedAvg
 
 if torch.cuda.is_available():
@@ -25,31 +26,44 @@ else:
 ssl._create_default_https_context = ssl._create_unverified_context
 
 
-def local_train(local_net, data_dir, client):
-    # 训练集
-    train_dir = os.path.join(data_dir, 'train')
-    trainannot_dir = os.path.join(data_dir, 'trainannot')
+def split_dataset(dataset):
+    train_num = int(0.8 * len(dataset))
+    val_num = int(0.1 * len(dataset))
+    test_num = len(dataset) - train_num - val_num
+    train_dataset, val_dataset, test_dataset = random_split(dataset,
+                                                            lengths=[train_num, val_num, test_num],
+                                                            generator=torch.Generator().manual_seed(42))
+    train_dataset.augmentation = DataAug.augment_train()
+    val_dataset.augmentation = DataAug.augment_val()
+    test_dataset.augmentation = DataAug.augment_val()
+    return train_dataset, val_dataset, test_dataset
 
-    # 验证集
-    val_dir = os.path.join(data_dir, 'val')
-    valannot_dir = os.path.join(data_dir, 'valannot')
 
-    # 加载训练数据集
-    train_dataset = NonIID(
-        train_dir,
-        trainannot_dir,
-        augmentation=DataAug.augment_train(),
+@functools.lru_cache(maxsize=10)
+def get_region_data(region_data_dir) -> Region:
+    data_dir = os.path.join(region_data_dir, 'img')
+    mask_dir = os.path.join(region_data_dir, 'mask')
+    region_dataset = Region(
+        data_dir,
+        mask_dir,
         preprocessing=DataAug.preprocessing(Config.preprocessing_fn)
     )
+    return split_dataset(region_dataset)
 
-    # 加载验证数据集
-    val_dataset = NonIID(
-        val_dir,
-        valannot_dir,
-        augmentation=DataAug.augment_val(),
+
+@functools.lru_cache(maxsize=10)
+def get_full_data(region_data_dirs) -> Full:
+    data_dirs = [os.path.join(data_dir, 'img') for data_dir in region_data_dirs]
+    mask_dirs = [os.path.join(data_dir, 'mask') for data_dir in region_data_dirs]
+    full_dataset = Full(
+        data_dirs,
+        mask_dirs,
         preprocessing=DataAug.preprocessing(Config.preprocessing_fn)
     )
+    return split_dataset(full_dataset)
 
+
+def local_train(local_net, train_dataset, val_dataset, client):
     # 需根据显卡的性能进行设置，batch_size为每次迭代中一次训练的图片数，num_workers为训练时的工作进程数，如果显卡不太行或者显存空间不够，将batch_size调低并将num_workers调为0
     train_loader = DataLoader(train_dataset, batch_size=Config.batch_size, shuffle=True, num_workers=Config.num_workers)
     val_loader = DataLoader(val_dataset, batch_size=Config.batch_size, shuffle=False, num_workers=Config.num_workers)
@@ -91,19 +105,8 @@ def local_train(local_net, data_dir, client):
     return best_local_net.state_dict(), train_logs, val_logs
 
 
-def global_val(data_dirs, global_net):
-    # 验证集
-    val_dirs = [os.path.join(data_dir, 'val') for data_dir in data_dirs]
-    val_annot_dirs = [os.path.join(data_dir, 'valannot') for data_dir in data_dirs]
-
-    # 加载验证数据集
-    val_dataset = NonIIDFull(
-        val_dirs,
-        val_annot_dirs,
-        augmentation=DataAug.augment_val(),
-        preprocessing=DataAug.preprocessing(Config.preprocessing_fn)
-    )
-    val_loader = DataLoader(val_dataset, batch_size=Config.batch_size, shuffle=False, num_workers=Config.num_workers)
+def global_val(full_val_dataset, global_net):
+    val_loader = DataLoader(full_val_dataset, batch_size=Config.batch_size, shuffle=False, num_workers=Config.num_workers)
 
     # 创建一个epoch，用于迭代数据样本
     val_epoch = smp_utils.train.ValidEpoch(global_net, loss=Config.loss, metrics=Config.metrics, device=DEVICE, verbose=True)
@@ -140,12 +143,14 @@ if __name__ == '__main__':
         # 每个client在本地训练一定轮次
         for i in range(1, Config.region_num + 1):
             print('----Client {} local train----'.format(i))
-            local_w[e][i], local_train_log[e][i], local_val_log[e][i] = local_train(global_net, Config.get_data_dir(i), i)
+            train_dataset, val_dataset, _ = get_region_data(Config.get_data_dir(i))
+            local_w[e][i], local_train_log[e][i], local_val_log[e][i] = local_train(global_net, train_dataset, val_dataset, client=i)
         # 模型聚合
         avg_w = FedAvg(local_w[e])
         global_net.load_state_dict(avg_w)
         global_net.eval()
-        global_val_log[e] = global_val([Config.get_data_dir(j) for j in range(1, Config.region_num + 1)], global_net)
+        _, full_val_dataset, _ = get_full_data([Config.get_data_dir(j) for j in range(1, Config.region_num + 1)])
+        global_val_log[e] = global_val(full_val_dataset, global_net)
 
         # 每一轮保存数据
         result_dir = Config.get_result_dir()
