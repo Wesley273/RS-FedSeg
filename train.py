@@ -29,9 +29,7 @@ def split_dataset(dataset):
     train_num = int(0.8 * len(dataset))
     val_num = int(0.1 * len(dataset))
     test_num = len(dataset) - train_num - val_num
-    train_data, val_data, test_data = random_split(dataset,
-                                                   lengths=[train_num, val_num, test_num],
-                                                   generator=torch.Generator().manual_seed(42))
+    train_data, val_data, test_data = random_split(dataset, lengths=[train_num, val_num, test_num], generator=torch.Generator().manual_seed(42))
     train_data.dataset.set_augmentation(DataAug.augment_train())
     val_data.dataset.set_augmentation(DataAug.augment_val())
     test_data.dataset.set_augmentation(DataAug.augment_val())

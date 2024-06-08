@@ -13,7 +13,7 @@ from torch.cuda.amp import autocast as autocast
 from torch.utils.data import DataLoader
 
 from config import Config
-from datasets import Full, DataAug
+from train import get_full_data
 
 if torch.cuda.is_available():
     DEVICE = torch.device(Config.device)
@@ -26,24 +26,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 if __name__ == '__main__':
     net = Config.get_net()
     data_dirs = [Config.get_data_dir(j) for j in range(1, Config.region_num + 1)]
-    train_dirs = [os.path.join(data_dir, 'train') for data_dir in data_dirs]
-    train_annot_dirs = [os.path.join(data_dir, 'trainannot') for data_dir in data_dirs]
-    val_dirs = [os.path.join(data_dir, 'val') for data_dir in data_dirs]
-    val_annot_dirs = [os.path.join(data_dir, 'valannot') for data_dir in data_dirs]
-    # 训练数据集
-    train_dataset = Full(
-        train_dirs,
-        train_annot_dirs,
-        augmentation=DataAug.augment_train(),
-        preprocessing=DataAug.preprocessing(Config.preprocessing_fn)
-    )
-    # 加载验证数据集
-    val_dataset = Full(
-        val_dirs,
-        val_annot_dirs,
-        augmentation=DataAug.augment_val(),
-        preprocessing=DataAug.preprocessing(Config.preprocessing_fn)
-    )
+    train_dataset, val_dataset, _ = get_full_data(data_dirs)
     train_loader = DataLoader(train_dataset, batch_size=Config.batch_size, shuffle=True, num_workers=Config.num_workers)
     val_loader = DataLoader(val_dataset, batch_size=Config.batch_size, shuffle=False, num_workers=Config.num_workers)
 
