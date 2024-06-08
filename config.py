@@ -24,7 +24,7 @@ class Config:
                  'BH_WATERTANK': {'dataset': Region, 'regions': 6},
                  'IAIL': {'dataset': Region, 'regions': 5}}
 
-    data_name = 'BH_POOL'
+    data_name = 'IAIL'
     data_dist = None
     dataset = data_dict[data_name]['dataset']
     region_num = data_dict[data_name]['regions']
