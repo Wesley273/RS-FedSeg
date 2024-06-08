@@ -4,7 +4,6 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import functools
 import json
 import ssl
 from collections import defaultdict
@@ -30,16 +29,15 @@ def split_dataset(dataset):
     train_num = int(0.8 * len(dataset))
     val_num = int(0.1 * len(dataset))
     test_num = len(dataset) - train_num - val_num
-    train_dataset, val_dataset, test_dataset = random_split(dataset,
+    train_data, val_data, test_data = random_split(dataset,
                                                             lengths=[train_num, val_num, test_num],
                                                             generator=torch.Generator().manual_seed(42))
-    train_dataset.augmentation = DataAug.augment_train()
-    val_dataset.augmentation = DataAug.augment_val()
-    test_dataset.augmentation = DataAug.augment_val()
-    return train_dataset, val_dataset, test_dataset
+    train_data.augmentation = DataAug.augment_train()
+    val_data.augmentation = DataAug.augment_val()
+    test_data.augmentation = DataAug.augment_val()
+    return train_data, val_data, test_data
 
 
-@functools.lru_cache(maxsize=10)
 def get_region_data(region_data_dir) -> Region:
     data_dir = os.path.join(region_data_dir, 'img')
     mask_dir = os.path.join(region_data_dir, 'mask')
@@ -51,7 +49,6 @@ def get_region_data(region_data_dir) -> Region:
     return split_dataset(region_dataset)
 
 
-@functools.lru_cache(maxsize=10)
 def get_full_data(region_data_dirs) -> Full:
     data_dirs = [os.path.join(data_dir, 'img') for data_dir in region_data_dirs]
     mask_dirs = [os.path.join(data_dir, 'mask') for data_dir in region_data_dirs]
@@ -143,14 +140,14 @@ if __name__ == '__main__':
         # 每个client在本地训练一定轮次
         for i in range(1, Config.region_num + 1):
             print('----Client {} local train----'.format(i))
-            train_dataset, val_dataset, _ = get_region_data(Config.get_data_dir(i))
-            local_w[e][i], local_train_log[e][i], local_val_log[e][i] = local_train(global_net, train_dataset, val_dataset, client=i)
+            local_train_data, local_val_data, _ = get_region_data(Config.get_data_dir(i))
+            local_w[e][i], local_train_log[e][i], local_val_log[e][i] = local_train(global_net, local_train_data, local_val_data, client=i)
         # 模型聚合
         avg_w = FedAvg(local_w[e])
         global_net.load_state_dict(avg_w)
         global_net.eval()
-        _, full_val_dataset, _ = get_full_data([Config.get_data_dir(j) for j in range(1, Config.region_num + 1)])
-        global_val_log[e] = global_val(full_val_dataset, global_net)
+        _, full_val_data, _ = get_full_data([Config.get_data_dir(j) for j in range(1, Config.region_num + 1)])
+        global_val_log[e] = global_val(full_val_data, global_net)
 
         # 每一轮保存数据
         result_dir = Config.get_result_dir()
