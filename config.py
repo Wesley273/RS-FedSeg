@@ -25,7 +25,7 @@ class Config:
                  'IAIL': {'dataset': Region, 'regions': 5}}
 
     data_name = 'BH_POOL'
-    data_type = 'non_iid'
+    data_dist = 'non_iid'
     dataset = data_dict[data_name]['dataset']
     region_num = data_dict[data_name]['regions']
 
@@ -54,7 +54,7 @@ class Config:
 
     @classmethod
     def get_result_dir(cls):
-        return os.path.join('result', Config.data_name, cls.data_type)
+        return os.path.join('result', Config.data_name, cls.data_dist)
 
     @classmethod
     def get_net(cls):

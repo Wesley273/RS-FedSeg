@@ -39,10 +39,10 @@ def split_dataset(dataset):
 
 
 def get_region_data(region_data_dir) -> Region:
-    data_dir = os.path.join(region_data_dir, 'img')
+    img_dir = os.path.join(region_data_dir, 'img')
     mask_dir = os.path.join(region_data_dir, 'mask')
     region_dataset = Region(
-        data_dir,
+        img_dir,
         mask_dir,
         preprocessing=DataAug.preprocessing(Config.preprocessing_fn)
     )
@@ -50,10 +50,10 @@ def get_region_data(region_data_dir) -> Region:
 
 
 def get_full_data(region_data_dirs) -> Full:
-    data_dirs = [os.path.join(data_dir, 'img') for data_dir in region_data_dirs]
+    img_dirs = [os.path.join(data_dir, 'img') for data_dir in region_data_dirs]
     mask_dirs = [os.path.join(data_dir, 'mask') for data_dir in region_data_dirs]
     full_dataset = Full(
-        data_dirs,
+        img_dirs,
         mask_dirs,
         preprocessing=DataAug.preprocessing(Config.preprocessing_fn)
     )

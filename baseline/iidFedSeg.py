@@ -45,6 +45,7 @@ def get_iid_dataset():
 
 if __name__ == '__main__':
     global_net = Config.get_net()
+    Config.data_dist = 'iid'
     full_val_data, local_train_datas, local_val_datas = get_iid_dataset()
 
     local_w = defaultdict(dict)
