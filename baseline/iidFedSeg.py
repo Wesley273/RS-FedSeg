@@ -30,12 +30,15 @@ def get_iid_dataset():
 
     num_train = len(full_train_data)
     num_val = len(full_val_data)
-    num_trains = [num_train // Config.region_num] * (Config.region_num - 1)
-    num_trains.append(num_train // Config.region_num + num_train % Config.region_num)
-    num_vals = [num_val // Config.region_num] * (Config.region_num - 1)
-    num_vals.append(num_val // Config.region_num + num_val % Config.region_num)
-    train_datasets = random_split(full_train_data, num_trains, generator=torch.Generator().manual_seed(42))
-    val_datasets = random_split(full_val_data, num_vals, generator=torch.Generator().manual_seed(42))
+
+    num_trains_list = [num_train // Config.region_num] * (Config.region_num - 1)
+    num_trains_list.append(num_train // Config.region_num + num_train % Config.region_num)
+
+    num_vals_list = [num_val // Config.region_num] * (Config.region_num - 1)
+    num_vals_list.append(num_val // Config.region_num + num_val % Config.region_num)
+
+    train_datasets = random_split(full_train_data, num_trains_list, generator=torch.Generator().manual_seed(42))
+    val_datasets = random_split(full_val_data, num_vals_list, generator=torch.Generator().manual_seed(42))
 
     return full_val_data, train_datasets, val_datasets
 
@@ -50,7 +53,7 @@ if __name__ == '__main__':
     local_train_log = defaultdict(dict)
     local_val_log = defaultdict(dict)
     global_val_log = defaultdict(dict)
-    
+
     # 总联邦学习训练轮次
     for e in range(Config.epoch):
         print('#**************** Epoch: {} ****************#'.format(e))
