@@ -9,12 +9,9 @@ import ssl
 
 import torch
 from collections import defaultdict
-from segmentation_models_pytorch import utils as smp_utils
 from torch.cuda.amp import autocast as autocast
-from torch.utils.data import DataLoader
 
 from config import Config
-from datasets import Full, DataAug
 from torch.utils.data import random_split
 from fed_algos import FedAvg
 from train import local_train, global_val, get_full_data
