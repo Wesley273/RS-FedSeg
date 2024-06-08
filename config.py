@@ -8,13 +8,15 @@ from datasets import NonIID
 
 
 class Config:
+    # windows训练或linux服务器训练
+    platform = 'win'
     # 网络训练参数
     device = 'cuda'
-    batch_size = 8
+    batch_size = 24
     lr = 1e-4
-    num_workers = 0
-    epoch = 5
-    client_epoch = 3
+    num_workers = 8
+    epoch = 10
+    client_epoch = 5
 
     # 数据集加载
     data_dict = {'BH_POOL': {'dataset': NonIID, 'regions': 8},
@@ -44,7 +46,10 @@ class Config:
 
     @classmethod
     def get_data_dir(cls, client):
-        data_dir = os.path.join('data', cls.data_name, 'REGION_{}'.format(client))
+        if cls.platform == 'win':
+            data_dir = os.path.join('data', cls.data_name, 'REGION_{}'.format(client))
+        if cls.platform == 'linux':
+            data_dir = os.path.join('/root', 'autodl-tmp', Config.data_name, 'REGION_{}'.format(client))
         return data_dir
 
     @classmethod
