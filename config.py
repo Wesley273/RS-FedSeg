@@ -58,7 +58,7 @@ class Config:
 
     @classmethod
     def get_net(cls):
-        return smp.Unet(encoder_name=cls.encoder,
-                        encoder_weights=cls.encoder_weights,
-                        classes=len(cls.classes),
-                        activation=cls.activation)
+        return smp.Unet(encoder_name=cls.encoder,               # 编码器
+                        encoder_weights=cls.encoder_weights,    # 预训练参数
+                        classes=len(cls.classes),               # 类别个数
+                        activation=cls.activation)              # 激活函数
