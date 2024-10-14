@@ -35,27 +35,26 @@ def visualize(**images):
 
 
 if __name__ == '__main__':
-    DATA_DIR = Config.get_data_dir(region=0)
+    region_data_dirs = [Config.get_data_dir(j) for j in range(1, Config.region_num + 1)]
 
     # 测试集
-    test_dir = os.path.join(DATA_DIR, 'test')
-    testannot_dir = os.path.join(DATA_DIR, 'testannot')
+    img_dirs = [os.path.join(data_dir, 'img') for data_dir in region_data_dirs]
+    mask_dirs = [os.path.join(data_dir, 'mask') for data_dir in region_data_dirs]
 
     # 加载最佳模型
     best_net = Config.get_net().to(DEVICE)
-    best_net.load_state_dict(torch.load(os.path.join(Config.get_result_dir(), 'global', 'global_net.pth')))
+    best_net.load_state_dict(torch.load(os.path.join(Config.get_result_dir(), 'global', 'global_net.pth'), map_location=DEVICE))
 
     # 创建测试数据集
     test_dataset = Full(
-        test_dir,
-        testannot_dir,
+        img_dirs,
+        mask_dirs,
         augmentation=DataAug.augment_val(),
-        preprocessing=DataAug.preprocessing(Config.preprocessing_fn),
-        classes=Config.classes,
+        preprocessing=DataAug.preprocessing(Config.preprocessing_fn)
     )
 
     # 用没有进行图像处理转化的测试集进行图像可视化展示
-    test_dataset_vis = Full(test_dir, testannot_dir, classes=Config.classes)
+    test_dataset_vis = Full(img_dirs, mask_dirs)
     # 从测试集中随机挑选3张图片进行测试
     for i in range(3):
         n = np.random.choice(len(test_dataset))

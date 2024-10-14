@@ -47,7 +47,7 @@ class Config:
     @classmethod
     def get_data_dir(cls, region):
         if cls.platform == 'win':
-            data_dir = os.path.join('data', cls.data_name, 'REGION_{}'.format(region))
+            data_dir = os.path.join('C:\\Users\\wesley\\Documents\\data', cls.data_name, 'REGION_{}'.format(region))
         if cls.platform == 'linux':
             data_dir = os.path.join('/root', 'autodl-tmp', Config.data_name, 'REGION_{}'.format(region))
         return data_dir
