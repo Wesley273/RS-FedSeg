@@ -25,7 +25,7 @@ class Config:
                  'IAIL': {'dataset': Region, 'regions': 5}}
 
     data_name = 'IAIL'
-    data_dist = "iid"
+    data_dist = "un_fed"
     dataset = data_dict[data_name]['dataset']
     region_num = data_dict[data_name]['regions']
 
