@@ -20,7 +20,6 @@ class Config:
 
     # 数据集加载
     data_dict = {'BH_POOL': {'dataset': Region, 'regions': 8},
-                 'MINI_BH_POOL': {'dataset': Region, 'regions': 8},
                  'BH_WATERTANK': {'dataset': Region, 'regions': 6},
                  'IAIL': {'dataset': Region, 'regions': 5}}
 
