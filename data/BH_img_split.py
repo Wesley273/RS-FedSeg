@@ -66,10 +66,20 @@ def image_split(img_folder, out_img_folder, mask_folder, out_mask_folder, size_w
                             start_w = size[1] - size_w
                         end_w = start_w + size_w
                         cropped = img[start_h: end_h, start_w: end_w]
-                        #  用起始坐标来命名切割得到的图像，为的是方便后续标签数据抓取
-                        name_img = name + '__1__' + str(start_h) + '___' + str(start_w)
-                        cv2.imwrite('{}/{}.png'.format(out_folder, name_img), cropped)
-                        number = number + 1
+                        # 用起始坐标来命名切割得到的图像
+                        name_img = f"{name}__1__{start_h}___{start_w}.png"
+                        output_path = os.path.join(out_folder, name_img)
+
+                        # 检查裁剪结果
+                        if cropped.size > 0:
+                            if not os.path.exists(output_path):
+                                cv2.imwrite(output_path, cropped)
+                                number += 1  # 只在成功写入时增加计数
+                            else:
+                                print(f"文件 {name_img} 已存在，跳过。")
+                        else:
+                            print(f"裁剪结果无效，无法写入文件: {output_path}")
+                            
             #  若图像高大于切割高,但宽小于切割宽
             elif size[0] >= size_h and size[1] < size_w:
                 print('图片{}需要在右面补齐'.format(name))
@@ -189,5 +199,5 @@ if __name__ == "__main__":
         size_h = 480
         #  切割步长,重叠度为(size_w - step)/size_w
         step = 240
-        # image_split(img_folder, out_img_folder, mask_folder, out_mask_folder, size_w, size_h, step)
+        image_split(img_folder, out_img_folder, mask_folder, out_mask_folder, size_w, size_h, step)
         delete_empty(out_img_folder, out_mask_folder)
