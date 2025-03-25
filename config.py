@@ -52,8 +52,12 @@ class Config:
         return data_dir
 
     @classmethod
-    def get_result_dir(cls):
-        return os.path.join('result', Config.data_name, cls.data_dist)
+    def get_result_dir(cls, data_name=None, data_dist=None):
+        if data_name is None:
+            data_name = cls.data_name
+        if data_dist is None:
+            data_dist = cls.data_dist
+        return os.path.join('result', data_name, data_dist)
 
     @classmethod
     def get_net(cls):
