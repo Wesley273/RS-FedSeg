@@ -43,17 +43,6 @@ def plot_metrics(iterations, dice_score, iou_score):
     plt.close()  # 关闭图像，避免内存泄漏
 
 
-def save_metrics_to_csv(iterations, dice_score, iou_score):
-    """将指标数据保存到 CSV 文件"""
-    data = {
-        '迭代次数': iterations,
-        'Dice指标': dice_score,
-        'IoU指标': iou_score
-    }
-    df = pd.DataFrame(data)
-    df.to_csv(os.path.join(Config.get_result_dir(), 'dice_iou_metrics.csv'), index=False, encoding='utf-8')
-
-
 def plot_together(data_name, data_dist_list, iterations_list, dice_score_list, iou_score_list):
     """将多个数据分布的指标绘制在同一张图中"""
     plt.figure(figsize=(8, 6))
@@ -107,6 +96,22 @@ def plot_separate_metrics(data_name, data_dist_list, iterations_list, dice_score
     plt.close()  # 关闭图像，避免内存泄漏
 
 
+def save_metrics_to_csv(data_name, data_dist_list, iterations_list, dice_score_list, iou_score_list):
+    """将不同数据分布下的 Dice 和 IoU 指标保存为 CSV 文件"""
+    result_dir = os.path.join('result', data_name)
+    os.makedirs(result_dir, exist_ok=True)  # 确保目录存在
+
+    for i, data_dist in enumerate(data_dist_list):
+        file_path = os.path.join(result_dir, f"{data_name}_{data_dist}_metrics.csv")
+        df = pd.DataFrame({
+            'Iterations': iterations_list[i],
+            'Dice Score': dice_score_list[i],
+            'IoU Score': iou_score_list[i]
+        })
+        df.to_csv(file_path, index=False, encoding='utf-8')
+        print(f"指标已保存至 {file_path}")
+
+
 if __name__ == "__main__":
 
     data_names = ['BH_POOL', 'IAIL']
@@ -130,3 +135,4 @@ if __name__ == "__main__":
         # plot_together(data_name, data_dists, iterations_list, dice_score_list, iou_score_list)
         # 绘制分开的 Dice 和 IoU 指标图
         plot_separate_metrics(data_name, data_dists, iterations_list, dice_score_list, iou_score_list)
+        # save_metrics_to_csv(data_name, data_dists, iterations_list, dice_score_list, iou_score_list)
