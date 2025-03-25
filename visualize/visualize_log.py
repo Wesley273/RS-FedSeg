@@ -65,7 +65,7 @@ def plot_separate_metrics(data_name, data_dist_list, iterations_list, dice_score
     markers = ['o', 's', '^']  # 标记区分数据分布
     dist_dict = {'iid': 'IID', 'non_iid': 'Non-IID', 'un_fed': 'Non-Fed', }
     # 绘制 Dice 指标
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(8 / 1.2, 6 / 1.2))
     for i, data_dist in enumerate(data_dist_list):
         plt.plot(iterations_list[i], dice_score_list[i], label=f'{dist_dict[data_dist]}', marker=markers[i])
     # plt.title(f'{data_name} 在不同数据分布下的 Dice 指标')
@@ -80,7 +80,7 @@ def plot_separate_metrics(data_name, data_dist_list, iterations_list, dice_score
     plt.savefig(os.path.join('result', f"{data_name}", f"{data_name}_所有数据分布_Dice指标变化.svg"), dpi=300)
     plt.close()  # 关闭图像，避免内存泄漏
     # 绘制 IoU 指标
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(8 / 1.2, 6 / 1.2))
     for i, data_dist in enumerate(data_dist_list):
         plt.plot(iterations_list[i], iou_score_list[i], label=f'{dist_dict[data_dist]}', marker=markers[i],)
     # plt.title(f'{data_name} 在不同数据分布下的 IoU 指标')
