@@ -67,7 +67,7 @@ def plot_separate_metrics(data_name, data_dist_list, iterations_list, dice_score
     # 绘制 Dice 指标
     plt.figure(figsize=(8 / 1.2, 6 / 1.2))
     for i, data_dist in enumerate(data_dist_list):
-        plt.plot(iterations_list[i], dice_score_list[i], label=f'{dist_dict[data_dist]}', marker=markers[i])
+        plt.plot(iterations_list[i], dice_score_list[i], clip_on=False, label=f'{dist_dict[data_dist]}', marker=markers[i])
     # plt.title(f'{data_name} 在不同数据分布下的 Dice 指标')
     plt.xlabel('训练轮数')
     plt.ylabel('Dice 指标值')
@@ -75,14 +75,15 @@ def plot_separate_metrics(data_name, data_dist_list, iterations_list, dice_score
         plt.ylim(0.6, 1)
     else:
         plt.ylim(0.3, 1)
-    leg = plt.legend(loc='lower right')
+    plt.legend(loc='lower right')
+    plt.xlim(0, 9)
     plt.grid(True)
     plt.savefig(os.path.join('result', f"{data_name}", f"{data_name}_所有数据分布_Dice指标变化.svg"), dpi=300)
     plt.close()  # 关闭图像，避免内存泄漏
     # 绘制 IoU 指标
     plt.figure(figsize=(8 / 1.2, 6 / 1.2))
     for i, data_dist in enumerate(data_dist_list):
-        plt.plot(iterations_list[i], iou_score_list[i], label=f'{dist_dict[data_dist]}', marker=markers[i],)
+        plt.plot(iterations_list[i], iou_score_list[i], clip_on=False, label=f'{dist_dict[data_dist]}', marker=markers[i],)
     # plt.title(f'{data_name} 在不同数据分布下的 IoU 指标')
     plt.xlabel('训练轮数')
     plt.ylabel('IoU 指标值')
@@ -90,7 +91,8 @@ def plot_separate_metrics(data_name, data_dist_list, iterations_list, dice_score
         plt.ylim(0.6, 1)
     else:
         plt.ylim(0.3, 1)
-    leg = plt.legend(loc='lower right')
+    plt.legend(loc='lower right')
+    plt.xlim(0, 9)
     plt.grid(True)
     plt.savefig(os.path.join('result', f"{data_name}", f"{data_name}_所有数据分布_IoU指标变化.svg"), dpi=300)
     plt.close()  # 关闭图像，避免内存泄漏
