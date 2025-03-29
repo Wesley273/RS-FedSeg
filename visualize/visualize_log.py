@@ -72,7 +72,7 @@ def plot_separate_metrics(data_name, data_dist_list, iterations_list, dice_score
     plt.xlabel('训练轮数')
     plt.ylabel('Dice 指标值')
     if data_name == 'IAIL':
-        plt.ylim(0.6, 1)
+        plt.ylim(0.3, 1)
     else:
         plt.ylim(0.3, 1)
     plt.legend(loc='lower right')
@@ -88,7 +88,7 @@ def plot_separate_metrics(data_name, data_dist_list, iterations_list, dice_score
     plt.xlabel('训练轮数')
     plt.ylabel('IoU 指标值')
     if data_name == 'IAIL':
-        plt.ylim(0.6, 1)
+        plt.ylim(0.3, 1)
     else:
         plt.ylim(0.3, 1)
     plt.legend(loc='lower right')
